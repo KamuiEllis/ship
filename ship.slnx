@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ship/ship.vcxproj" Id="14de309c-ad2e-4c27-9622-263465cab7f4" />
+</Solution>
