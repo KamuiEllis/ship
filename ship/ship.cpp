@@ -37,21 +37,21 @@ int main()
     SDL_Renderer* renderer =
         SDL_CreateRenderer(window, nullptr);
 
-    if (!renderer)
-    {
-        std::cout << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
+        if (!renderer)
+        {
+            std::cout << SDL_GetError() << std::endl;
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
 
         
-        Enemy enemy(500.0f, 300.0f);
+        Enemy enemy(500.0f, 300.0f, "basic");
         Player player(500.0f, 600.0f);
 
 
         // Load sprite sheet
-        if (!player.loadTexture(renderer, "sprites/download.png", "sprites/projectile.png", "sprites/damaged_ship.png", "sprites/explosion.png"), !enemy.loadTexture(renderer, "sprites/enemy_sprite.png"))
+        if (!player.loadTexture(renderer, "sprites/download.png", "sprites/projectile.png", "sprites/damaged_ship.png", "sprites/explosion.png"), !enemy.loadTexture(renderer))
         {
             std::cout << "Could not load ship!" << std::endl;
         }
@@ -77,8 +77,6 @@ int main()
                 {
                     running = false;
                 }
-
-
                 
             }
 
@@ -111,7 +109,12 @@ int main()
             ))
             {
                 std::cout << "Player collided with enemy" << std::endl;
-                player.takeDamage();
+               
+                if (player.getVunrability() == false) {
+                    player.takeDamage();
+                    enemy.takeDamage();
+                }
+                
             }
 
             SDL_RenderPresent(renderer);

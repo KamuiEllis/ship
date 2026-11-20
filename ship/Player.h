@@ -71,7 +71,7 @@ public:
 
 	void move(float x, float y);
 	void fire();
-
+	bool getVunrability();
 	void update(float deltaTime);
 	void updateProjectiles(float deltaTime);
 

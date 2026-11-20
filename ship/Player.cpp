@@ -107,6 +107,7 @@ void Player::update(float deltaTime)
         }
     }
 }
+
 void Player::handleInput(float deltaTime)
 {
     const bool* keys = SDL_GetKeyboardState(nullptr);
@@ -349,6 +350,11 @@ void Player::renderProjectiles(SDL_Renderer* renderer)
 
         //SDL_RenderFillRect(renderer, &rect);
     }
+}
+
+
+bool Player::getVunrability() {
+    return invunrable;
 }
 
 void Player::takeDamage()
