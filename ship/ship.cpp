@@ -4,6 +4,14 @@
 #include "Player.h"
 #include "Enemy.h"
 
+
+enum class GameState {
+    RUNNING,
+    PLAYING,
+    GAMEOVER
+};
+
+
 int main()
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -43,7 +51,7 @@ int main()
 
 
         // Load sprite sheet
-        if (!player.loadTexture(renderer, "sprites/download.png", "sprites/projectile.png", "sprites/damaged_ship.png"), !enemy.loadTexture(renderer, "sprites/enemy_sprite.png"))
+        if (!player.loadTexture(renderer, "sprites/download.png", "sprites/projectile.png", "sprites/damaged_ship.png", "sprites/explosion.png"), !enemy.loadTexture(renderer, "sprites/enemy_sprite.png"))
         {
             std::cout << "Could not load ship!" << std::endl;
         }

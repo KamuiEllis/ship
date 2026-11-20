@@ -4,11 +4,13 @@
 #include <algorithm>
 
 Player::Player(float pX, float pY) {
-	posX = pX;
-	posY = pY;
-	lives = 3;
-	alive = true;
+    posX = pX;
+    posY = pY;
+    lives = 3;
+    alive = true;
 }
+
+
 
 Player::~Player()
 {
@@ -20,7 +22,7 @@ Player::~Player()
 
 
 bool Player::loadTexture(SDL_Renderer* renderer,
-    const std::string& path, const std::string& projectilePath, const std::string& damaged_ship_path)
+    const std::string& path, const std::string& projectilePath, const std::string& damaged_ship_path, const std::string& explosion_path)
 {
     SDL_Texture* loadedTexture =
         IMG_LoadTexture(renderer, path.c_str());
@@ -28,9 +30,12 @@ bool Player::loadTexture(SDL_Renderer* renderer,
     SDL_Texture* loadedDamagedShipTexture =
         IMG_LoadTexture(renderer, damaged_ship_path.c_str());
 
+    SDL_Texture* loadedExplosionTexture =
+        IMG_LoadTexture(renderer, explosion_path.c_str());
+
     SDL_Texture* loadedProjectileTexture = IMG_LoadTexture(renderer, projectilePath.c_str());
 
-    if (!loadedTexture || !loadedProjectileTexture || !loadedDamagedShipTexture)
+    if (!loadedTexture || !loadedProjectileTexture || !loadedDamagedShipTexture || !loadedExplosionTexture)
     {
         std::cout << "Texture loading failed: "
             << SDL_GetError() << std::endl;
@@ -49,12 +54,17 @@ bool Player::loadTexture(SDL_Renderer* renderer,
     }
 
     if (damageTexture) {
-        SDL_DestroyTexture(loadedProjectileTexture);
+        SDL_DestroyTexture(damageTexture);
+    }
+
+    if (explosionTexture) {
+        SDL_DestroyTexture(explosionTexture);
     }
 
     texture = loadedTexture;
     projectileTexture = loadedProjectileTexture;
     damageTexture = loadedDamagedShipTexture;
+    explosionTexture = loadedExplosionTexture;
 
     // Preserve sharp pixel-art edges
     SDL_SetTextureScaleMode(
@@ -67,17 +77,36 @@ bool Player::loadTexture(SDL_Renderer* renderer,
 
 void Player::update(float deltaTime)
 {
-    animationTimer += deltaTime;
-
-    while (animationTimer >= animationSpeed)
+    if (alive)
     {
-        animationTimer -= animationSpeed;
+        animationTimer += deltaTime;
 
-        currentFrame =
-            (currentFrame + 1) % TOTAL_FRAMES;
+        while (animationTimer >= animationSpeed)
+        {
+            animationTimer -= animationSpeed;
+
+            currentFrame =
+                (currentFrame + 1) % TOTAL_FRAMES;
+        }
+    }
+    else if (!explosionFinished)
+    {
+        explosionTimer += deltaTime;
+
+        while (explosionTimer >= explosionSpeed)
+        {
+            explosionTimer -= explosionSpeed;
+            explosionFrame++;
+
+            if (explosionFrame >= EXPLOSION_TOTAL_FRAMES)
+            {
+                explosionFrame = EXPLOSION_TOTAL_FRAMES - 1;
+                explosionFinished = true;
+                break;
+            }
+        }
     }
 }
-
 void Player::handleInput(float deltaTime)
 {
     const bool* keys = SDL_GetKeyboardState(nullptr);
@@ -156,49 +185,106 @@ void Player::handleInput(float deltaTime)
 
 void Player::render(SDL_Renderer* renderer)
 {
-    if (!texture || !alive || !damageTexture)
+    if (!texture || !damageTexture)
         return;
 
     int column = currentFrame % COLUMNS;
     int row = currentFrame / COLUMNS;
 
-    SDL_FRect normalSource = {
-        static_cast<float>(column * FRAME_WIDTH),
-        static_cast<float>(row * FRAME_HEIGHT),
-        static_cast<float>(FRAME_WIDTH),
-        static_cast<float>(FRAME_HEIGHT)
-    };
-
-    SDL_FRect damagedSource = {
-        0.0f,
-        0.0f,
-        192.0f,
-        241.0f
-    };
-
-    SDL_FRect destination = {
-        posX,
-        posY,
-        128.0f,
-        160.0f
-    };
-
-    SDL_Texture* selectedTexture =
-        showDamageSprite ? damageTexture : texture;
-
-    SDL_FRect* selectedSource =
-        showDamageSprite ? &damagedSource : &normalSource;
-
-    SDL_RenderTexture(
-        renderer,
-        selectedTexture,
-        selectedSource,
-        &destination
-    );
+    int explosionColumn = currentFrame % EXPLOSION_COLUMNS;
+    int explosionRow = currentFrame / EXPLOSION_COLUMNS;
     
+    if (alive) {
+        SDL_FRect normalSource = {
+       static_cast<float>(column * FRAME_WIDTH),
+       static_cast<float>(row * FRAME_HEIGHT),
+       static_cast<float>(FRAME_WIDTH),
+       static_cast<float>(FRAME_HEIGHT)
+        };
+
+        SDL_FRect damagedSource = {
+            0.0f,
+            0.0f,
+            192.0f,
+            241.0f
+        };
+
+        SDL_FRect destination = {
+            posX,
+            posY,
+            128.0f,
+            160.0f
+        };
+
+        SDL_Texture* selectedTexture =
+            showDamageSprite ? damageTexture : texture;
+
+        SDL_FRect* selectedSource =
+            showDamageSprite ? &damagedSource : &normalSource;
+
+        SDL_RenderTexture(
+            renderer,
+            selectedTexture,
+            selectedSource,
+            &destination
+        );
+    }
+    else {
+        SDL_FRect normalSource = {
+          static_cast<float>(explosionColumn * EXPLOSION_FRAME_WIDTH),
+          static_cast<float>(explosionRow * EXPLOSION_FRAME_HEIGHT),
+          static_cast<float>(EXPLOSION_FRAME_WIDTH),
+          static_cast<float>(EXPLOSION_FRAME_HEIGHT)
+        };
+
+        SDL_FRect destination = {
+            posX,
+            posY,
+            128.0f,
+            160.0f
+        };
+
+        SDL_Texture* selectedTexture = explosionTexture;
+        SDL_FRect* selectedSource = &normalSource;
+
+        SDL_RenderTexture(
+            renderer,
+            selectedTexture,
+            selectedSource,
+            &destination
+        );
+
+        if (!explosionFinished)
+        {
+            int explosionColumn = explosionFrame % EXPLOSION_COLUMNS;
+            int explosionRow = explosionFrame / EXPLOSION_COLUMNS;
+
+            SDL_FRect source = {
+                static_cast<float>(explosionColumn * EXPLOSION_FRAME_WIDTH),
+                static_cast<float>(explosionRow * EXPLOSION_FRAME_HEIGHT),
+                static_cast<float>(EXPLOSION_FRAME_WIDTH),
+                static_cast<float>(EXPLOSION_FRAME_HEIGHT)
+            };
+
+            SDL_FRect destination = {
+                posX,
+                posY,
+                128.0f,
+                160.0f
+            };
+
+            SDL_RenderTexture(renderer, explosionTexture, &source, &destination);
+        }
+        else {
+            SDL_DestroyTexture(explosionTexture);
+        }
+    }
+
+   
 }
 
 void Player::move(float x, float y) {
+    if (!alive) return;
 	posX += x;
 	posY += y;
 
@@ -208,6 +294,7 @@ void Player::move(float x, float y) {
 }
 
 void Player::fire() {
+    if (!alive) return;
     Projectile bullet;
 
     bullet.x = posX + 48;
@@ -264,14 +351,28 @@ void Player::renderProjectiles(SDL_Renderer* renderer)
     }
 }
 
-void Player::takeDamage() {
-    if (invunrable)
+void Player::takeDamage()
+{
+    if (!alive || invunrable)
         return;
+
+    lives--;
+
+    if (lives <= 0)
+    {
+        lives = 0;
+        alive = false;
+
+        explosionFrame = 0;
+        explosionTimer = 0.0f;
+        explosionFinished = false;
+
+        return;
+    }
 
     invunrable = true;
     invunerableTimer = 8.0f;
 
     flashTime = 0.0f;
     showDamageSprite = true;
-    lives -= 1;
 }
