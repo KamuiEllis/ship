@@ -3,6 +3,11 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include <memory>
+#include <vector>
+#include <random>
+std::vector<std::unique_ptr<Enemy>> enemies;
+
 
 using namespace std;
 
@@ -110,6 +115,8 @@ void Enemy::update(float deltaTime)
 
     if (alive) {
 
+        posY += 220.0f * deltaTime;
+
         if (showDamageSprite == true) {
             flashTime += deltaTime;
 
@@ -149,6 +156,11 @@ void Enemy::update(float deltaTime)
         }
     }
    
+}
+
+bool Enemy::isExplosionFinished() const
+{
+    return explosionFinished;
 }
 
 

@@ -74,6 +74,7 @@ public:
 	bool isAlive();
 	bool getVunrability();
 	void update(float deltaTime);
+	int getLives();
 	void updateProjectiles(float deltaTime);
 	std::vector<Projectile>& getProjectiles();
 	void renderProjectiles(SDL_Renderer* renderer);

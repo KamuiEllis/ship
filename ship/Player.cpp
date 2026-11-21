@@ -188,6 +188,10 @@ bool Player::isAlive() {
     return alive;
 }
 
+int Player::getLives() {
+    return lives;
+}
+
 void Player::render(SDL_Renderer* renderer)
 {
     if (!texture || !damageTexture)

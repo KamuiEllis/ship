@@ -64,5 +64,6 @@ public:
 	//void renderProjectiles(SDL_Renderer* renderer);
 	void render(SDL_Renderer* renderer);
 	SDL_FRect getBounds() const;
+	bool isExplosionFinished() const;
 	void takeDamage();
 };
