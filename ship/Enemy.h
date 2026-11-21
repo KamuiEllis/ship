@@ -18,6 +18,7 @@ private:
 	SDL_Texture* texture = nullptr;
 	SDL_Texture* projectileTexture = nullptr;
 	SDL_Texture* damageTexture = nullptr;
+	SDL_Texture* explosionTexture = nullptr;
 	float flashTime = 0.0f;
 	float fireCooldown = 0.2f;
 	float fireTimer = 0.0f;
@@ -31,7 +32,7 @@ private:
 
 	int explosionFrame = 0;
 	float explosionTimer = 0.0f;
-	float explosionSpeed = 0.08f;
+	float explosionSpeed = 0.03f;
 
 	bool explosionFinished = false;
 
@@ -56,10 +57,10 @@ public:
 
 	void move(float x, float y);
 	void fire();
-
+	bool isAlive();
 	void update(float deltaTime);
 	//void updateProjectiles(float deltaTime);
-
+	
 	//void renderProjectiles(SDL_Renderer* renderer);
 	void render(SDL_Renderer* renderer);
 	SDL_FRect getBounds() const;

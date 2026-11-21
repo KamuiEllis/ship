@@ -3,7 +3,7 @@
 #include <string>
 #include <cmath>
 #include <vector>
-
+#include "Particle.h"
 
 struct Projectile {
 	float x;
@@ -71,10 +71,11 @@ public:
 
 	void move(float x, float y);
 	void fire();
+	bool isAlive();
 	bool getVunrability();
 	void update(float deltaTime);
 	void updateProjectiles(float deltaTime);
-
+	std::vector<Projectile>& getProjectiles();
 	void renderProjectiles(SDL_Renderer* renderer);
 	void render(SDL_Renderer* renderer);
 	void takeDamage();

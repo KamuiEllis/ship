@@ -22,32 +22,44 @@ Enemy::~Enemy()
     }
 }
 
+bool Enemy::isAlive() {
+    return alive;
+}
+
 
 bool Enemy::loadTexture(SDL_Renderer* renderer)
 {
 
     SDL_Texture* loadedTexture;
     SDL_Texture* loadedDamagedTexture;
+
+    SDL_Texture* loadedExplosionTexture;
     string enemyTexturePath;
     string enemyDamagedTexturePath;
+    string explosion_path;
 
     if (enemyType == "basic") {
         enemyTexturePath = "sprites/enemy_sprite.png";
         enemyDamagedTexturePath = "sprites/enemy_damaged.png";
+        explosion_path = "sprites/explosion.png";
         loadedTexture =
             IMG_LoadTexture(renderer, enemyTexturePath.c_str());
         loadedDamagedTexture = IMG_LoadTexture(renderer, enemyDamagedTexturePath.c_str());
-            
+        
+        loadedExplosionTexture =
+            IMG_LoadTexture(renderer, explosion_path.c_str());
 
         
     }
     else {
         loadedTexture = IMG_LoadTexture(renderer, enemyTexturePath.c_str());
         loadedDamagedTexture = IMG_LoadTexture(renderer, enemyDamagedTexturePath.c_str());
+        loadedExplosionTexture =
+            IMG_LoadTexture(renderer, explosion_path.c_str());
     }
     
 
-    if (!loadedTexture || !loadedDamagedTexture)
+    if (!loadedTexture || !loadedDamagedTexture|| !loadedExplosionTexture)
     {
         std::cout << "Texture loading failed: "
             << SDL_GetError() << std::endl;
@@ -64,8 +76,13 @@ bool Enemy::loadTexture(SDL_Renderer* renderer)
         SDL_DestroyTexture(damageTexture);
     }
 
+    if (explosionTexture) {
+        SDL_DestroyTexture(explosionTexture);
+    }
+
     texture = loadedTexture;
     damageTexture = loadedDamagedTexture;
+    explosionTexture = loadedExplosionTexture;
 
     // Preserve sharp pixel-art edges
     SDL_SetTextureScaleMode(
@@ -75,6 +92,11 @@ bool Enemy::loadTexture(SDL_Renderer* renderer)
 
     SDL_SetTextureScaleMode(
         damageTexture,
+        SDL_SCALEMODE_NEAREST
+    );
+
+    SDL_SetTextureScaleMode(
+        explosionTexture,
         SDL_SCALEMODE_NEAREST
     );
 
@@ -177,7 +199,54 @@ void Enemy::render(SDL_Renderer* renderer)
         );
     }
     else {
+        SDL_FRect normalSource = {
+        static_cast<float>(explosionColumn * EXPLOSION_FRAME_WIDTH),
+        static_cast<float>(explosionRow * EXPLOSION_FRAME_HEIGHT),
+        static_cast<float>(EXPLOSION_FRAME_WIDTH),
+        static_cast<float>(EXPLOSION_FRAME_HEIGHT)
+        };
 
+        SDL_FRect destination = {
+            posX,
+            posY,
+            128.0f,
+            160.0f
+        };
+
+        SDL_Texture* selectedTexture = explosionTexture;
+        SDL_FRect* selectedSource = &normalSource;
+
+        SDL_RenderTexture(
+            renderer,
+            selectedTexture,
+            selectedSource,
+            &destination
+        );
+
+        if (!explosionFinished)
+        {
+            int explosionColumn = explosionFrame % EXPLOSION_COLUMNS;
+            int explosionRow = explosionFrame / EXPLOSION_COLUMNS;
+
+            SDL_FRect source = {
+                static_cast<float>(explosionColumn * EXPLOSION_FRAME_WIDTH),
+                static_cast<float>(explosionRow * EXPLOSION_FRAME_HEIGHT),
+                static_cast<float>(EXPLOSION_FRAME_WIDTH),
+                static_cast<float>(EXPLOSION_FRAME_HEIGHT)
+            };
+
+            SDL_FRect destination = {
+                posX,
+                posY,
+                128.0f,
+                160.0f
+            };
+
+            SDL_RenderTexture(renderer, explosionTexture, &source, &destination);
+        }
+        else {
+            SDL_DestroyTexture(explosionTexture);
+        }
     }
 
     
@@ -199,6 +268,7 @@ void Enemy::move(float x, float y) {
 
 
 }
+
 
 void Enemy::takeDamage()
 {

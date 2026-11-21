@@ -184,6 +184,10 @@ void Player::handleInput(float deltaTime)
 
 }
 
+bool Player::isAlive() {
+    return alive;
+}
+
 void Player::render(SDL_Renderer* renderer)
 {
     if (!texture || !damageTexture)
@@ -381,4 +385,8 @@ void Player::takeDamage()
 
     flashTime = 0.0f;
     showDamageSprite = true;
+}
+
+std::vector<Projectile>& Player::getProjectiles() {
+    return projectiles;
 }
